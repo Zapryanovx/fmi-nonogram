@@ -1,3 +1,18 @@
+/**
+*
+* Solution to course project # 9
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2023/2024
+*
+* @author Ilian Zapryanov
+* @idnumber 8MI0600405
+* @compiler VC
+*
+* <предназначение на файла>
+*
+*/
+
 #include <iostream>
 #include <fstream>
 
@@ -68,6 +83,8 @@ int main()
 
 	char username[MAX_SIZE_INPUT] = "";
 	chooseUser(username);
+
+	//if level is lost or won, start from the beginning
 	while (true)
 	{
 		int levelAccess = getLevelOfUsername(username);
@@ -78,14 +95,15 @@ int main()
 		char matrixNonogramSheet[MAX_SIZE_OF_MATRIX_LEVEL_FIVE][MAX_SIZE_OF_MATRIX_LEVEL_FIVE] = {};
 
 		int sizeOfMatrixNonogram = 0;
-	    getMatrixOfChosenLevel(username, currentLevel, matrixNonogramAnswer, sizeOfMatrixNonogram, levelVariation);
+		getMatrixOfChosenLevel(username, currentLevel, matrixNonogramAnswer, sizeOfMatrixNonogram, levelVariation);
 
 		printNonogram(matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram);
 		playNonogram(username, matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram, 0, levelAccess, currentLevel, levelVariation);
 	}
 
-	return 0; 
+	return 0;
 }
+
 
 void chooseUser(char username[])
 {
@@ -94,18 +112,21 @@ void chooseUser(char username[])
 	int choice = 0;
 	std::cin >> choice;
 
+	// [1] register
 	if (choice == 1)
 	{
 		std::cin.ignore(MAX_SIZE_INPUT, '\n');
 		registerUser(username);
 	}
 
+	// [2] login
 	else if (choice == 2)
 	{
 		std::cin.ignore(MAX_SIZE_INPUT, '\n');
 		loginUser(username);
 	}
 
+	// else invalid
 	else
 	{
 
@@ -125,6 +146,7 @@ void registerUser(char username[])
 	std::cout << "Select a Username: ";
 	std::cin.getline(username, MAX_SIZE_INPUT);
 
+	//if username is not valid, return to choosing register/login operation
 	if (!isUsernameValid(username))
 	{
 		chooseUser(username);
@@ -134,8 +156,9 @@ void registerUser(char username[])
 	char fileName[MAX_SIZE_OF_FILE_NAME] = "";
 	getFileName(username, fileName);
 
-	std::ifstream read(fileName);
-	if (read.is_open())
+	//check if user exists
+	std::ifstream fileIn(fileName);
+	if (fileIn.is_open())
 	{
 		std::cout << "[ERROR] User already exists." << std::endl;
 		std::cout << std::endl;
@@ -144,6 +167,8 @@ void registerUser(char username[])
 
 	else
 	{
+		//save data in file
+
 		char password[MAX_SIZE_INPUT] = "";
 		std::cout << "Select a Password: ";
 		std::cin.getline(password, MAX_SIZE_INPUT);
@@ -188,15 +213,17 @@ void loginUser(char username[])
 	char fileName[MAX_SIZE_OF_FILE_NAME] = "";
 	getFileName(usernameInput, fileName);
 
-	std::ifstream read(fileName);
-	if (read.is_open())
+	//if user is found, check if password is right
+	std::ifstream fileIn(fileName);
+	if (fileIn.is_open())
 	{
 		char usernameData[MAX_SIZE_INPUT] = "";
 		char passwordData[MAX_SIZE_INPUT] = "";
 
-		read.getline(usernameData, MAX_SIZE_INPUT);
-		read.getline(passwordData, MAX_SIZE_INPUT);
+		fileIn.getline(usernameData, MAX_SIZE_INPUT);
+		fileIn.getline(passwordData, MAX_SIZE_INPUT);
 
+		//if data is matched log in
 		if (isMatch(usernameData, usernameInput) && isMatch(passwordData, passwordInput))
 		{
 
@@ -208,7 +235,7 @@ void loginUser(char username[])
 
 		else
 		{
-			std::cout << "[ERROR] Invalid username or password." << std::endl;
+			std::cout << "[ERROR] wrong password." << std::endl;
 			std::cout << std::endl;
 			chooseUser(username);
 		}
@@ -227,12 +254,13 @@ void loginUser(char username[])
 void playNonogram(char username[], char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMatrixNonogram, int mistakesCounter, int levelAccess, int currentLevel, int levelVariation)
 {
 
+	//game lost
 	if (mistakesCounter == 3)
 	{
-
 		mistakesCounter = 0;
 		std::cout << "Game lost. Please select a new level." << std::endl;
 		std::cout << std::endl;
+		
 		clearCache(username);
 		return;
 	}
@@ -240,17 +268,18 @@ void playNonogram(char username[], char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX
 	int row = 0, col = 0;
 	std::cin >> row >> col;
 
+	//if coords are valid, check the cell
 	if (isCoordinateValid(row, sizeOfMatrixNonogram) && isCoordinateValid(col, sizeOfMatrixNonogram))
 	{
-
+		//if cell is already filled
 		if (matrixNonogramSheet[row][col] == 'X' || matrixNonogramSheet[row][col] == 'O')
 		{
-
 			std::cout << "[ERROR] Cell is already filled." << std::endl;
 			std::cout << std::endl;
 			playNonogram(username, matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram, mistakesCounter, levelAccess, currentLevel, levelVariation);
 		}
 
+		//if cell is wrong (empty)
 		else if (matrixNonogramAnswer[row][col] != 'X')
 		{
 			mistakesCounter++;
@@ -265,10 +294,12 @@ void playNonogram(char username[], char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX
 			playNonogram(username, matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram, mistakesCounter, levelAccess, currentLevel, levelVariation);
 		}
 
+		//if cell is right
 		else
 		{
 			matrixNonogramSheet[row][col] = 'X';
 
+			//check if level is won
 			if (isGameIsWon(matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram))
 			{
 
@@ -280,6 +311,7 @@ void playNonogram(char username[], char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX
 
 				checkLevelIfNeedsIncrease(username, levelAccess, currentLevel, sizeOfMatrixNonogram);
 				saveProgressNonogramSheet(username, matrixNonogramSheet, sizeOfMatrixNonogram, levelAccess, currentLevel, levelVariation);
+				
 				clearCache(username);
 				return;
 			}
@@ -311,6 +343,7 @@ void playNonogram(char username[], char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX
 
 bool isGameIsWon(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMatrixNonogram)
 {
+	//check if not filled right cell exists
 	for (int row = 0; row < sizeOfMatrixNonogram; row++)
 	{
 		for (int col = 0; col < sizeOfMatrixNonogram; col++)
@@ -333,11 +366,13 @@ void continueOrNewGame(char username[])
 	char choice;
 	std::cin >> choice;
 
+	//load last level [Y/y] is chosen
 	if (choice == 'Y' || choice == 'y')
 	{
 		loadSavedGame(username);
 	}
 
+	//start over if [N/n] is chosen
 	else if (choice == 'N' || choice == 'n')
 	{
 		int levelAccess = getLevelOfUsername(username);
@@ -361,6 +396,7 @@ void continueOrNewGame(char username[])
 		std::cin.clear();
 		std::cin.ignore(MAX_SIZE_INPUT, '\n');
 		std::cout << "[ERROR] Please select a valid option." << std::endl;
+
 		continueOrNewGame(username);
 	}
 }
@@ -387,6 +423,7 @@ void saveProgressNonogramSheet(char username[], char matrixNonogramSheet[][MAX_S
 		fileOut << lines[i] << std::endl;
 	}
 
+	//save last changes to the sheet
 	for (int i = 0; i < sizeOfMatrixNonogram; i++)
 	{
 		for (int j = 0; j < sizeOfMatrixNonogram; j++)
@@ -403,6 +440,7 @@ void saveProgressNonogramSheet(char username[], char matrixNonogramSheet[][MAX_S
 
 void loadSavedGame(char username[])
 {
+	//load all data from user's file
 	char matrixNonogramSheet[MAX_SIZE_OF_MATRIX_LEVEL_FIVE][MAX_SIZE_OF_MATRIX_LEVEL_FIVE];
 	char matrixNonogramAnswer[MAX_SIZE_OF_MATRIX_LEVEL_FIVE][MAX_SIZE_OF_MATRIX_LEVEL_FIVE] = {};
 	int sizeOfMatrixNonogram = 0;
@@ -426,17 +464,21 @@ void loadSavedGame(char username[])
 
 	levelAccess = lines[2][0] - '0';
 
+	//check if level is NOT started
 	if (lineCount - 1 < 3)
 	{
 		std::cin.clear();
 		std::cin.ignore(MAX_SIZE_INPUT, '\n');
 		std::cout << "[ERROR] You have not started a level yet." << std::endl;
 		std::cout << std::endl;
+
 		return;
 	}
 
+	//if level is started
 	else
 	{
+		//get all info 
 		currentLevel = lines[3][0] - '0';
 		levelVariation = lines[3][1] - '0';
 		mistakesCounter = lines[3][2] - '0';
@@ -450,7 +492,7 @@ void loadSavedGame(char username[])
 		}
 
 		for (int i = 0; i < sizeOfMatrixNonogram; i++)
-		{	
+		{
 			for (int j = 0; j < sizeOfMatrixNonogram; j++)
 			{
 				fileInMatrix >> matrixNonogramSheet[i][j];
@@ -462,12 +504,13 @@ void loadSavedGame(char username[])
 		printNonogram(matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram);
 		playNonogram(username, matrixNonogramSheet, matrixNonogramAnswer, sizeOfMatrixNonogram, mistakesCounter, levelAccess, currentLevel, levelVariation);
 	}
-	
+
 }
 
 
 void clearCache(char username[])
 {
+	//clear not needed info [matrixNonogramSheet/currentLevel/levelVariation]
 	char fileName[MAX_SIZE_OF_FILE_NAME] = "";
 	getFileName(username, fileName);
 
@@ -490,8 +533,10 @@ void clearCache(char username[])
 	fileOut.close();
 }
 
+
 void getFileName(char str[], char fileName[])
 {
+	//concat [username + .txt] 
 	char txtStr[5] = ".txt";
 
 	int sizeOfStr = getSizeOfStr(str);
@@ -530,12 +575,12 @@ int getLevelOfUsername(char username[])
 	char fileName[MAX_SIZE_OF_FILE_NAME] = "";
 	getFileName(username, fileName);
 
-	std::ifstream read(fileName);
+	std::ifstream fileIn(fileName);
 
 	char line[MAX_SIZE_INPUT] = "";
 	int lineCount = 0;
 
-	while (read.getline(line, MAX_SIZE_INPUT))
+	while (fileIn.getline(line, MAX_SIZE_INPUT))
 	{
 		lineCount++;
 		if (lineCount == 3)
@@ -578,6 +623,7 @@ void checkLevelIfNeedsIncrease(char username[], int& levelAccess, int& currentLe
 	saveLevelAccess(username, levelAccess);
 }
 
+
 void saveLevelAccess(char username[], int levelAccess)
 {
 	char fileName[MAX_SIZE_OF_FILE_NAME] = "";
@@ -594,12 +640,15 @@ void saveLevelAccess(char username[], int levelAccess)
 	fileIn.close();
 
 	std::ofstream fileOut(fileName);
+	
+	//save levelAccess over when it's increased
 	for (int i = 0; i < lineCount; i++)
 	{
 		if (i == 2)
 		{
 			lines[i][0]++;
 			fileOut << lines[i] << std::endl;
+
 			continue;
 		}
 
@@ -624,6 +673,7 @@ void saveIncreasedMistakes(char username[], int mistakesCounter)
 	}
 	fileIn.close();
 
+	//save mistakeCounter over when it's increased
 	std::ofstream fileOut(fileName);
 	for (int i = 0; i < lineCount; i++)
 	{
@@ -655,12 +705,15 @@ int chooseLevel(char username[], int levelAccess)
 
 	int currentLevel = 0;
 	std::cin >> currentLevel;
+
+	//if input level is valid choose it
 	if (currentLevel >= 1 && currentLevel <= levelAccess)
 	{
 		std::cout << "Level [" << currentLevel << "] was successfully chosen." << std::endl;
 		return currentLevel;
 	}
 
+	//if input level is not valid [no access]
 	else
 	{
 		std::cin.clear();
@@ -673,6 +726,7 @@ int chooseLevel(char username[], int levelAccess)
 
 void getMatrixOfChosenLevel(char username[], int currentLevel, char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int& sizeOfMatrixNonogram, int& levelVariation)
 {
+	//get random variation
 	levelVariation = rand() % 2 + 1;
 
 	char lines[MAX_SIZE_INPUT] = "";
@@ -695,12 +749,15 @@ void getMatrixOfChosenLevel(char username[], int currentLevel, char matrixNonogr
 			break;
 		}
 
+		//get coords of right cell
 		i = lines[0] - '0';
 		j = lines[2] - '0';
+
 		matrixNonogramAnswer[i][j] = 'X';
 	}
 	fileIn.close();
 
+	//set rest to wrong (empty) cells
 	for (int i = 0; i < sizeOfMatrixNonogram; i++)
 	{
 		for (int j = 0; j < sizeOfMatrixNonogram; j++)
@@ -716,6 +773,8 @@ void getMatrixOfChosenLevel(char username[], int currentLevel, char matrixNonogr
 
 }
 
+
+//get size of nonogram level
 void determineMatrixSize(int currentLevel, int& sizeOfMatrixNonogram)
 {
 	if (currentLevel == 1)
@@ -751,6 +810,7 @@ void printNonogram(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], ch
 	int maxRowHintWidth = getHintsMaxWidth(rowHints, sizeOfMatrixNonogram);
 	int maxColHintHeight = getHintsMaxHeight(colHints, sizeOfMatrixNonogram);
 
+	//print hints of cols
 	for (int hintRow = 0; hintRow < maxColHintHeight; hintRow++)
 	{
 		for (int space = 0; space < maxRowHintWidth + 3; space++)
@@ -783,6 +843,8 @@ void printNonogram(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], ch
 	}
 	std::cout << std::endl;
 
+
+	//print hints of rows
 	for (int row = 0; row < sizeOfMatrixNonogram; row++)
 	{
 		int spaceForHints = maxRowHintWidth - getWidthForRowHints(rowHints[row]);
@@ -821,6 +883,7 @@ void printNonogram(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], ch
 
 void getRowHints(char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int rowHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMatrixNonogram)
 {
+
 	for (int row = 0; row < sizeOfMatrixNonogram; row++)
 	{
 		int count = 0, indexHints = 0;
@@ -844,13 +907,14 @@ void getRowHints(char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int
 			rowHints[row][indexHints] = count;
 		}
 
-
 	}
 
 }
 
+
 void getColHints(char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int colHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMatrixNonogram)
 {
+
 	for (int col = 0; col < sizeOfMatrixNonogram; col++)
 	{
 		int count = 0, indexHints = 0;
@@ -875,6 +939,8 @@ void getColHints(char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int
 	}
 }
 
+
+//get the needed width to print the hints
 int getHintsMaxWidth(int rowHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMatrixNonogram)
 {
 	int maxRowHintWidth = 0;
@@ -901,6 +967,8 @@ int getHintsMaxWidth(int rowHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMa
 	return maxRowHintWidth;
 }
 
+
+//get the needed height to print the hints
 int getHintsMaxHeight(int colHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfMatrixNonogram)
 {
 	int maxColHintHeight = 0;
@@ -911,6 +979,7 @@ int getHintsMaxHeight(int colHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfM
 		{
 			colHintHeight++;
 		}
+
 		if (colHintHeight > maxColHintHeight)
 		{
 			maxColHintHeight = colHintHeight;
@@ -919,6 +988,7 @@ int getHintsMaxHeight(int colHints[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int sizeOfM
 
 	return maxColHintHeight;
 }
+
 
 int getHintsHeightForColumn(int colHints[])
 {
@@ -930,6 +1000,7 @@ int getHintsHeightForColumn(int colHints[])
 
 	return height;
 }
+
 
 int getWidthForRowHints(int rowHints[])
 {
@@ -952,11 +1023,13 @@ int getWidthForRowHints(int rowHints[])
 void checkIfRowOrColIsFilled(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], char matrixNonogramAnswer[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int row, int col, int sizeOfMatrixNonogram)
 {
 
+	//if row or col is filled, fill the rest with 'O' symbol [empty]
 	int counterXInColAnswer = getXInCol(matrixNonogramAnswer, col, sizeOfMatrixNonogram);
 	int counterXInColSheet = getXInCol(matrixNonogramSheet, col, sizeOfMatrixNonogram);
 
 	if (counterXInColAnswer == counterXInColSheet)
 	{
+		//fill col
 		matrixNonogramSheetFillCol(matrixNonogramSheet, col, sizeOfMatrixNonogram);
 	}
 
@@ -965,12 +1038,15 @@ void checkIfRowOrColIsFilled(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL
 
 	if (counterXInRowAnswer == counterXInRowSheet)
 	{
+		//fill row
 		matrixNonogramSheetFillRow(matrixNonogramSheet, row, sizeOfMatrixNonogram);
 	}
 }
 
+
 int getXInCol(char matrix[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int col, int sizeOfMatrixNonogram)
 {
+	//count Xs in col
 	int counterXInCol = 0;
 	for (int currentRow = 0; currentRow < sizeOfMatrixNonogram; currentRow++)
 	{
@@ -982,8 +1058,10 @@ int getXInCol(char matrix[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int col, int sizeOfM
 	return counterXInCol;
 }
 
+
 int getXInRow(char matrix[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int row, int sizeOfMatrixNonogram)
 {
+	//count Xs in row
 	int counterXInRow = 0;
 	for (int currentCol = 0; currentCol < sizeOfMatrixNonogram; currentCol++)
 	{
@@ -995,8 +1073,10 @@ int getXInRow(char matrix[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int row, int sizeOfM
 	return counterXInRow;
 }
 
+
 void matrixNonogramSheetFillCol(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int col, int sizeOfMatrixNonogram)
 {
+	//fill the rest
 	for (int currentRow = 0; currentRow < sizeOfMatrixNonogram; currentRow++)
 	{
 		if (matrixNonogramSheet[currentRow][col] != 'X')
@@ -1006,8 +1086,10 @@ void matrixNonogramSheetFillCol(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LE
 	}
 }
 
+
 void matrixNonogramSheetFillRow(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LEVEL_FIVE], int row, int sizeOfMatrixNonogram)
 {
+	//fill the rest
 	for (int currentCol = 0; currentCol < sizeOfMatrixNonogram; currentCol++)
 	{
 		if (matrixNonogramSheet[row][currentCol] != 'X')
@@ -1020,6 +1102,7 @@ void matrixNonogramSheetFillRow(char matrixNonogramSheet[][MAX_SIZE_OF_MATRIX_LE
 
 bool isUsernameValid(char username[])
 {
+	//username validation
 	int size = getSizeOfStr(username);
 	if (size < 4 || size > 16)
 	{
@@ -1042,9 +1125,10 @@ bool isUsernameValid(char username[])
 	return true;
 }
 
+
 bool isPasswordValid(char username[], char password[])
 {
-
+	//password validation
 	int size = getSizeOfStr(password);
 	if (size < 8 || size > 32)
 	{
@@ -1079,7 +1163,7 @@ bool isDigit(char ch)
 }
 
 
-
+//check if input info matches data info
 bool isMatch(char firstStr[], char secondStr[])
 {
 	int sizeOfUsernameData = getSizeOfStr(firstStr);
@@ -1122,6 +1206,7 @@ bool isSymbolAllowed(char ch)
 	return true;
 }
 
+
 bool isCoordinateValid(int coordinate, int sizeOfMatrixNonogram)
 {
 	for (int i = 0; i < sizeOfMatrixNonogram; i++)
@@ -1135,6 +1220,7 @@ bool isCoordinateValid(int coordinate, int sizeOfMatrixNonogram)
 	return false;
 }
 
+
 int getSizeOfStr(char str[])
 {
 
@@ -1146,6 +1232,7 @@ int getSizeOfStr(char str[])
 
 	return size;
 }
+
 
 void saveLevelStartedInFile(char username[], int currentLevel, int levelVariation)
 {

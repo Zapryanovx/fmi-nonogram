@@ -38,3 +38,12 @@
 ## Ресурси
 - [Nonograms.org](https://www.nonograms.org) - Официалният сайт на Nonogram.
 - [Wikipedia: Nonograms](https://en.wikipedia.org/wiki/Nonogram) - Повече за историята на Nonogram.
+
+## Приносители
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/Zapryanovx"><img src="https://avatars.githubusercontent.com/u/68477629?v=4" width="100px;" alt=""/><br /><sub><b>Ilian Zapryanov</b></sub></a><br /></a></td>
+  </tr>
+</table>
+
